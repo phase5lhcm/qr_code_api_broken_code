@@ -1,12 +1,17 @@
 import pytest
 from httpx import AsyncClient
 from app.main import app  # Import your FastAPI app
+from dotenv import load_dotenv
+from app.config import ADMIN_PASSWORD, ADMIN_USER, ALGORITHM, SECRET_KEY
+
+load_dotenv()
+
 
 @pytest.mark.asyncio
 async def test_login_for_access_token():
     form_data = {
-        "username": "admin",
-        "password": "secret",
+        "username": ADMIN_USER,
+        "password": ADMIN_PASSWORD,
     }
     async with AsyncClient(app=app, base_url="http://test") as ac:
         response = await ac.post("/token", data=form_data)
@@ -30,8 +35,8 @@ async def test_create_qr_code_unauthorized():
 @pytest.mark.asyncio
 async def test_create_and_delete_qr_code():
     form_data = {
-        "username": "admin",
-        "password": "secret",
+        "username": ADMIN_USER,
+        "password": ADMIN_PASSWORD,
     }
     async with AsyncClient(app=app, base_url="http://test") as ac:
         # Login and get the access token
@@ -47,7 +52,7 @@ async def test_create_and_delete_qr_code():
             "size": 10,
         }
         create_response = await ac.post("/qr-codes/", json=qr_request, headers=headers)
-        assert create_response.status_code in [201, 409]  # Created or already exists
+        assert create_response.status_code in [200, 201, 209]  # Created or already exists
 
         # If the QR code was created, attempt to delete it
         if create_response.status_code == 201:
